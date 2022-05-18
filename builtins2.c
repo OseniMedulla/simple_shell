@@ -3,17 +3,17 @@
 /**
  * add_key - create a new environment variable
  * @vars: pointer to struct of variables
- *
+ * 
  * Return: void
  */
+
 void add_key(vars_t *vars)
 {
     unsigned int i;
     char **newenv;
 
     for (i = 0; vars->env[i] != NULL; i++)
-        ;
-    newenv = malloc(sizeof(char *) * (i + 2));
+        newenv = malloc(sizeof(char *) * (i + 2));
     if (newenv == NULL)
     {
         print_error(vars, NULL);
@@ -42,9 +42,10 @@ void add_key(vars_t *vars)
  * find_key - finds an environment variable
  * @env: array of environment variables
  * @key: environment variable to find
- *
+ * 
  * Return: pointer to address of the environment variable
  */
+
 char **find_key(char **env, char *key)
 {
     unsigned int i, j, len;
@@ -65,9 +66,10 @@ char **find_key(char **env, char *key)
  * add_value - create a new environment variable string
  * @key: variable name
  * @value: variable value
- *
- * Return: pointer to the new string;
+ * 
+ * Return: pointer to the new string
  */
+
 char *add_value(char *key, char *value)
 {
     unsigned int len1, len2, i, j;
