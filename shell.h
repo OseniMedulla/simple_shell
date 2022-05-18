@@ -1,5 +1,5 @@
-#ifndef SHELL_H
-#define SHELL_H
+#ifndef SHELL_H_
+#define SHELL_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +22,29 @@ typedef struct builtins
 	void (*f)(vars_t *);
 } builtins_t;
 
+
+
+/**
+ * struct variables - variables
+ * @av: command line arguments
+ * @buffer: buffer of command
+ * @env: environment variables
+ * @count: count of commands entered
+ * @argv: arguments at opening of shell
+ * @status: exit status
+ * @commands: commands to execute
+ */
+typedef struct variables
+{
+	char **av;
+	char *buffer;
+	char **env;
+	size_t count;
+	char **argv;
+	int status;
+	char **commands;
+} vars_t;
+
 char **make_env(char **env);
 void free_env(char **env);
 
@@ -30,5 +53,15 @@ char *_strdup(char *strtodup);
 int _strcmpr(char *strcmp1, char *strcmp2);
 char *_strcat(char *strc1, char *strc2);
 unsigned int _strlen(char *str);
+
+char **tokenize(char *buffer, char *delimiter);
+char **_realloc(char **ptr, size_t *size);
+char *new_strtok(char *str, const char *delim);
+
+void (*check_for_builtins(vars_t *vars))(vars_t *vars);
+void new_exit(vars_t *vars);
+void _env(vars_t *vars);
+void new_setenv(vars_t *vars);
+void new_unsetenv(vars_t *vars);
 
 #endif
