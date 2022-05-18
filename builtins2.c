@@ -42,7 +42,7 @@ void add_key(vars_t *vars)
  * find_key - finds an environment variable
  * @env: array of environment variables
  * @key: environment variable to find
- * 
+ *
  * Return: pointer to address of the environment variable
  */
 
@@ -66,7 +66,7 @@ char **find_key(char **env, char *key)
  * add_value - create a new environment variable string
  * @key: variable name
  * @value: variable value
- * 
+ *
  * Return: pointer to the new string
  */
 
