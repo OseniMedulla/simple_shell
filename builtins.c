@@ -32,7 +32,7 @@ int builtin_env(data_of_program *data)
 					_print("\n");
 				}
 				else
-				{	
+				{
 					env_set_key(cpname, var_copy, data);
 					free(var_copy);
 				}
