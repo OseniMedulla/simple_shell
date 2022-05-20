@@ -1,69 +1,42 @@
 #include "shell.h"
-
 /**
- * check_match - checks if a character matches any in a string
- * @c: character to check
- * @str: string to check
- *
- * Return: 1 if match, 0 if not
- */
-
-unsigned int check_match(char c, const char *str)
+ * _strtok - separates strings with delimiters
+ * @line: It´s pointer to array we receive in getline.
+ * @delim: It´s characters we mark off string in parts.
+ * Return: A pointer to the created token
+*/
+char *_strtok(char *line, char *delim)
 {
-	unsigned int i;
+	int j;
+	static char *str;
+	char *copystr;
 
-	for (i = 0; str[i] != '\0'; i++)
+	if (line != NULL)
+		str = line;
+	for (; *str != '\0'; str++)
 	{
-		if (c == str[i])
-			return (1);
-	}
-	return (0);
-}
-
-/**
- * new_strtok - custom strtok
- * @str: string to tokenize
- * @delim: delimiter to tokenize against
- *
- * Return: pointer to the next token or NULL
- */
-
-char *new_strtok(char *str, const char *delim)
-{
-	static char *token_start;
-	static char *next_token;
-	unsigned int i;
-
-	if (str != NULL)
-		next_token = str;
-	token_start = next_token;
-	if (token_start == NULL)
-		return (NULL);
-	for (i = 0; next_token[i] != '\0'; i++)
-	{
-		if (check_match(next_token[i], delim) == 0)
+		for (j = 0; delim[j] != '\0'; j++)
+		{
+			if (*str == delim[j])
+			break;
+		}
+		if (delim[j] == '\0')
 			break;
 	}
-	if (next_token[i] == '\0' || next_token[i] == '#')
-	{
-		next_token = NULL;
+	copystr = str;
+	if (*copystr == '\0')
 		return (NULL);
-	}
-	token_start = next_token + i;
-	next_token = token_start;
-	for (i = 0; next_token[i] != '\0'; i++)
+	for (; *str != '\0'; str++)
 	{
-		if (check_match(next_token[i], delim) == 1)
-			break;
+		for (j = 0; delim[j] != '\0'; j++)
+		{
+			if (*str == delim[j])
+			{
+				*str = '\0';
+				str++;
+				return (copystr);
+			}
+		}
 	}
-	if (next_token[i] == '\0')
-		next_token = NULL;
-	else
-	{
-		next_token[i] = '\0';
-		next_token = next_token + i + 1;
-		if (*next_token == '\0')
-			next_token = NULL;
-	}
-	return (token_start);
+	return (copystr);
 }
