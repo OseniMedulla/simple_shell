@@ -1,156 +1,89 @@
 #include "shell.h"
 
 /**
- * check_for_builtins - checks if command is a builtin
- * @vars: variables
- * Return: pointer to the function or NULL
+ * builtin_env - shows the environment where the shell runs
+ * @data: struct for the program's data
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-void (*check_for_builtins(vars_t *vars))(vars_t *vars)
+int builtin_env(data_of_program *data)
 {
-	unsigned int i;
-	builtins_t check[] = {
-		{"exit", new_exit},
-		{"env", _env},
-		{"setenv", new_setenv},
-		{"unsetenv", new_unsetenv},
-		{NULL, NULL}
-	};
+	int i;
+	char cpname[50] = {'\0'};
+	char *var_copy = NULL;
 
-	for (i = 0; check[i].f != NULL; i++)
-	{
-		if (_strcmpr(vars->av[0], check[i].name) == 0)
-			break;
-	}
-	if (check[i].f != NULL)
-		check[i].f(vars);
-	return (check[i].f);
-}
-
-/**
- * new_exit - exit program
- * @vars: variables
- * Return: void
- */
-void new_exit(vars_t *vars)
-{
-	int status;
-
-	if (_strcmpr(vars->av[0], "exit") == 0 && vars->av[1] != NULL)
-	{
-		status = _atoi(vars->av[1]);
-		if (status == -1)
-		{
-			vars->status = 2;
-			print_error(vars, ": Illegal number: ");
-			_puts2(vars->av[1]);
-			_puts2("\n");
-			free(vars->commands);
-			vars->commands = NULL;
-			return;
-		}
-		vars->status = status;
-	}
-	free(vars->buffer);
-	free(vars->av);
-	free(vars->commands);
-	free_env(vars->env);
-	exit(vars->status);
-}
-
-/**
- * _env - prints the current environment
- * @vars: struct of variables
- * Return: void.
- */
-void _env(vars_t *vars)
-{
-	unsigned int i;
-
-	for (i = 0; vars->env[i]; i++)
-	{
-		_puts(vars->env[i]);
-		_puts("\n");
-	}
-	vars->status = 0;
-}
-
-/**
- * new_setenv - create a new environment variable, or edit an existing variable
- * @vars: pointer to struct of variables
- *
- * Return: void
- */
-void new_setenv(vars_t *vars)
-{
-	char **key;
-	char *var;
-
-	if (vars->av[1] == NULL || vars->av[2] == NULL)
-	{
-		print_error(vars, ": Incorrect number of arguments\n");
-		vars->status = 2;
-		return;
-	}
-	key = find_key(vars->env, vars->av[1]);
-	if (key == NULL)
-		add_key(vars);
+	/* if not arguments */
+	if (data->tokens[1] == NULL)
+		print_environ(data);
 	else
 	{
-		var = add_value(vars->av[1], vars->av[2]);
-		if (var == NULL)
+		for (i = 0; data->tokens[1][i]; i++)
 		{
-			print_error(vars, NULL);
-			free(vars->buffer);
-			free(vars->commands);
-			free(vars->av);
-			free_env(vars->env);
-			exit(127);
+			if (data->tokens[1][i] == '=')
+			{
+				var_copy = str_duplicate(env_get_key(cpname, data));
+				if (var_copy != NULL)
+					env_set_key(cpname, data->tokens[1] + i + 1, data);
+
+				/* print the environ */
+				print_environ(data);
+				if (env_get_key(cpname, data) == NULL)
+				{
+					_print(data->tokens[1]);
+					_print("\n");
+				}
+				else
+				{	
+					env_set_key(cpname, var_copy, data);
+					free(var_copy);
+				}
+				return (0);
+			}
+			cpname[i] = data->tokens[1][i];
 		}
-		free(*key);
-		*key = var;
+		errno = 2;
+		perror(data->command_name);
+		errno = 127;
 	}
-	vars->status = 0;
+	return (0);
 }
 
 /**
- * new_unsetenv - remove an environment variable
- * @vars: pointer to a struct of variables
- * Return: void
+ * builtin_set_env - ..
+ * @data: struct for the program's data
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-void new_unsetenv(vars_t *vars)
+int builtin_set_env(data_of_program *data)
 {
-	char **key, **newenv;
+	if (data->tokens[1] == NULL || data->tokens[2] == NULL)
+		return (0);
+	if (data->tokens[3] != NULL)
+	{
+		errno = E2BIG;
+		perror(data->command_name);
+		return (5);
+	}
 
-	unsigned int i, j;
+	env_set_key(data->tokens[1], data->tokens[2], data);
 
-	if (vars->av[1] == NULL)
+	return (0);
+}
+
+/**
+ * builtin_unset_env - ..
+ * @data: struct for the program's data'
+ * Return: ..
+ */
+int builtin_unset_env(data_of_program *data)
+{
+	if (data->tokens[1] == NULL)
+		return (0);
+	if (data->tokens[2] != NULL)
 	{
-		print_error(vars, ": Incorrect number of arguments\n");
-		vars->status = 2;
-		return;
+		errno = E2BIG;
+		perror(data->command_name);
+		return (5);
 	}
-	key = find_key(vars->env, vars->av[1]);
-	if (key == NULL)
-	{
-		print_error(vars, ": No variable to unset");
-		return;
-	}
-	for (i = 0; vars->env[i] != NULL; i++)
-		;
-	newenv = malloc(sizeof(char *) * i);
-	if (newenv == NULL)
-	{
-		print_error(vars, NULL);
-		vars->status = 127;
-		new_exit(vars);
-	}
-	for (i = 0; vars->env[i] != *key; i++)
-		newenv[i] = vars->env[i];
-	for (j = i + 1; vars->env[j] != NULL; j++, i++)
-		newenv[i] = vars->env[j];
-	newenv[i] = NULL;
-	free(*key);
-	free(vars->env);
-	vars->env = newenv;
-	vars->status = 0;
+	env_remove_key(data->tokens[1], data);
+
+	return (0);
 }
